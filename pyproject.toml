@@ -1,0 +1,25 @@
+[project]
+name = "heyhey"
+version = "0.1.0"
+description = "Hey Hey - A simple Flask webapp"
+authors = [
+    {name = "heyhey"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "flask (>=3.1.2,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.scripts]
+heyhey = "heyhey.app:main"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.4.2,<9.0.0)"
+]
