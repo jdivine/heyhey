@@ -1,0 +1,32 @@
+# This is a Github Workflow to perform CI tasks.
+# See the `zz-local-ci.sh` script for local CI commands.
+
+on: [push, pull_request]
+name: CI Pipeline
+jobs:
+    ci:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            # - name: Set up Podman
+            #   uses: redhat-actions/podman-setup@v2
+            #   with:
+            #       version: '5.5.2'
+
+            - name: Get poetry
+              uses: snok/install-poetry@v1
+              with:
+                  version: '2.2.1'
+                #   virtualenv: true
+
+            - name : Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: 3.12
+                  cache: 'poetry'
+
+            - name: Poetry setup
+              run: |
+                  poetry env use 3.12
