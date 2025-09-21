@@ -23,8 +23,9 @@
 - Shell script for local testing of CI actions
 - Dockerfile
   - Grabbed an existing Dockerfile I had used for a Python/Poetry project before and modified it
+- Github Actions workflow for CI
+  - I referred to an existing workflow for structure.
 - TODO:
-  - Github Actions workflow for CI
   - Helm chart
   - k8s cluster
   - Shell script for CD actions
