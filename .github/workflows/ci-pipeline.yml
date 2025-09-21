@@ -64,5 +64,5 @@ jobs:
               # Just using latest in this example since it's all we need to demonstrate CI and CD.
               # I'd want to publish for PRs (with a PR-specific tag) and for merges to main (with a "production" tag).
               run: |
-                bash zz-local-ci.sh publish
+                bash -x zz-local-ci.sh publish
 
