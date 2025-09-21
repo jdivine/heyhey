@@ -93,16 +93,32 @@ cmd_publish() {
     
     IMAGE_NAME="ghcr.io/jdivine/heyhey"
     
+    # Handle authentication differently for GitHub Actions vs local development
+    if [ -n "$GITHUB_TOKEN" ]; then
+        # Running in GitHub Actions - use the provided token
+        GITHUB_USER="jdivine"
+        AUTH_COMMAND="echo \$GITHUB_TOKEN | podman login ghcr.io --username \$GITHUB_USER --password-stdin"
+    else
+        # Running locally - use gh CLI
+        GITHUB_USER=$(gh auth status -a | grep 'Logged in' | awk '{print $7}')
+        AUTH_COMMAND="gh auth token | podman login ghcr.io --username \$GITHUB_USER --password-stdin"
+    fi
+    
     if ! {
-        GITHUB_USER=`gh auth status -a | grep 'Logged in' | awk '{print $7}'`
         podman tag heyhey:latest "$IMAGE_NAME:latest" &&
-        gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin &&
+        eval "$AUTH_COMMAND" &&
         podman push "$IMAGE_NAME:latest"
     }; then
-        echo "Publish failed."
+        echo "❌ Publish failed!"
         echo ""
-        echo "If you're getting permission errors, try:"
-        echo "  gh auth login --scopes 'write:packages,read:packages'"
+        if [ -n "$GITHUB_TOKEN" ]; then
+            echo "Running in GitHub Actions - check workflow permissions."
+            echo "Ensure the workflow has 'packages: write' permission."
+        else
+            echo "If you're getting permission errors, try:"
+            echo "  gh auth login --scopes 'write:packages,read:packages'"
+        fi
+        echo ""
         exit 1
     fi
     

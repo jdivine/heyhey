@@ -53,5 +53,6 @@
 - Non-root Dockerfile
 - More efficient Docker build
 - More cowbell
+- Pipeline caching (docker, python, etc)
 - Version tags for git and docker
 - Production-grade WSGI server like Gunicorn
