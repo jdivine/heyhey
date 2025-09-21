@@ -7,7 +7,8 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install --upgrade pip
 
 # The while one-liner is working around a weird non-deterministic SSL issue I was encountering locally on Ubuntu.
-# it randomly failed with an SSL error but would eventually work if retried! Feels like a network glitch but IDK.
+# it randomly failed with an SSL error but would eventually work if retried!
+# Feels like a network glitch because it only happens on my home internet but IDK.
 # I would never want to do this in a real-world build but don't think that isolating the issue is relevant in this example.
 RUN while ( ! pip list | grep poetry ) ; do pip install poetry==2.2 ; done
 

@@ -88,21 +88,24 @@ cmd_smoke() {
 cmd_publish() {
     echo "Publishing image to GitHub Container Registry..."
     
-    # Configure registries first
     configure_registries
     
     IMAGE_NAME="ghcr.io/jdivine/heyhey"
-    GITHUB_USER="jdivine"
     
+    if ! {
+        GITHUB_USER=`gh auth status -a | grep 'Logged in' | awk '{print $7}'`
+        podman tag heyhey:latest "$IMAGE_NAME:latest" &&
+        gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin &&
+        podman push "$IMAGE_NAME:latest"
+    }; then
+        echo "Publish failed."
+        echo ""
+        echo "If you're getting permission errors, try:"
+        echo "  gh auth login --scopes 'write:packages,read:packages'"
+        exit 1
+    fi
     
-    podman tag heyhey:latest "$IMAGE_NAME:latest"
-    gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin
-    podman push "$IMAGE_NAME:latest"
-    
-    echo "✓ Successfully published:"
-    echo "  $IMAGE_NAME:latest"
-    echo "  $IMAGE_NAME:$VERSION"
-    echo ""
+    echo "Successfully published."
     echo "Pull with: podman pull $IMAGE_NAME:latest"
 }
 
