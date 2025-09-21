@@ -6,31 +6,45 @@ set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Dependencies command - install/update dependencies
+# Configure podman registries
+configure_registries() {
+    echo "Configuring podman registries..."
+    
+    # Create registries.conf directory if it doesn't exist
+    REGISTRIES_DIR="$HOME/.config/containers"
+    mkdir -p "$REGISTRIES_DIR"
+    
+    # Create minimal registries.conf file
+    cat > "$REGISTRIES_DIR/registries.conf" << 'EOF'
+# Minimal registries configuration for ghcr.io
+[[registry]]
+location = "ghcr.io"
+
+[[registry]]  
+location = "docker.io"
+EOF
+}
+
 cmd_deps() {
     echo "Installing dependencies..."
     poetry sync --with dev
 }
 
-# Build command - build the container image
 cmd_build() {
     echo "Building image..."
     podman build --tag heyhey:latest .
 }
 
-# Test command - run tests
 cmd_test() {
     echo "Running tests..."
     poetry run pytest -v
 }
 
-# Lint command - code quality checks (if linter is available)
 cmd_lint() {
     echo "Running code quality checks..."
     poetry run flake8 app/ tests/
 }
 
-# Full CI pipeline - clean, deps, lint, test, build
 cmd_ci() {
     echo "Running full CI pipeline..."
     cmd_deps
@@ -40,10 +54,109 @@ cmd_ci() {
     echo "CI pipeline completed successfully"
 }
 
-# Development server command
-cmd_dev() {
-    echo "Starting development server..."
-    poetry run python -m app.app
+# Smoke test - quick container health check
+cmd_smoke() {
+    echo "Running smoke test..."
+    
+    # Start container w unique name and port to avoid conflicts
+    podman run -d --name "heyhey-smoke" -p "8090:8080" heyhey:latest
+    sleep 2
+    
+    # Test health endpoint with timeout and retries
+    success=false
+    for i in {1..10}; do
+        if curl -f -s --connect-timeout 2 "http://localhost:8090/health" > /dev/null; then
+            success=true
+            break
+        fi
+        echo "Attempt $i failed, retrying..."
+        sleep 1
+    done
+    
+    podman stop "heyhey-smoke" > /dev/null 2>&1 || true
+    podman rm "heyhey-smoke" > /dev/null 2>&1 || true
+    
+    if [ "$success" = true ]; then
+        echo "Smoke test passed"
+    else
+        echo "Smoke test failed"
+        exit 1
+    fi
+}
+
+# Publish - push image to GitHub Container Registry
+cmd_publish() {
+    echo "Publishing image to GitHub Container Registry..."
+    
+    # Configure registries first
+    configure_registries
+    
+    # Get the GitHub username/repo from git remote
+    # REPO_URL=$(git remote get-url origin 2>/dev/null || echo "")
+    # if [[ "$REPO_URL" =~ github\.com[:/]([^/]+)/([^/]+) ]]; then
+    #     GITHUB_USER="${BASH_REMATCH[1]}"
+    #     REPO_NAME="${BASH_REMATCH[2]%.git}"
+    # else
+    #     echo "Error: Could not determine GitHub repository from git remote"
+    #     echo "Make sure you're in a git repository with a GitHub remote"
+    #     exit 1
+    # fi
+    
+    # IMAGE_NAME="ghcr.io/$GITHUB_USER/$REPO_NAME"
+    IMAGE_NAME="ghcr.io/jdivine/heyhey"
+    GITHUB_USER="jdivine"
+    
+    # Get version tag (use git tag, branch, or 'latest')
+    # if git describe --tags --exact-match 2>/dev/null; then
+    #     VERSION=$(git describe --tags --exact-match)
+    # else
+    #     VERSION=$(git rev-parse --short HEAD)
+    # fi
+    
+    echo "Repository: $GITHUB_USER/$REPO_NAME"
+    echo "Registry: ghcr.io"
+    echo "Version: $VERSION"
+    
+    # Build image with proper tags
+    # cmd_build
+    
+    # Tag image for registry
+    # echo "Tagging image..."
+    podman tag heyhey:latest "$IMAGE_NAME:latest"
+    # podman tag heyhey:latest "$IMAGE_NAME:$VERSION"
+    
+    # Login to GitHub Container Registry
+    echo "Logging into GitHub Container Registry..."
+    echo "You may need to authenticate with GitHub CLI first: gh auth login"
+    
+    # Use gh CLI to get token and login to registry
+    # if ! command -v gh &> /dev/null; then
+    #     echo "Error: GitHub CLI (gh) is not installed"
+    #     echo "Please install: https://cli.github.com/"
+    #     exit 1
+    # fi
+    
+    # Check if authenticated
+    # if ! gh auth status &>/dev/null; then
+    #     echo "Error: Not authenticated with GitHub CLI"
+    #     echo "Please run: gh auth login"
+    #     exit 1
+    # fi
+    
+    # Login to container registry using gh token
+    REGISTRY="ghcr.io"
+    gh auth token | podman login $REGISTRY --username "$GITHUB_USER" --password-stdin
+    
+    # Push images
+    echo "Pushing images..."
+    podman push "$IMAGE_NAME:latest"
+    # podman push "$IMAGE_NAME:$VERSION"
+    
+    echo "✓ Successfully published:"
+    echo "  $IMAGE_NAME:latest"
+    echo "  $IMAGE_NAME:$VERSION"
+    echo ""
+    echo "Pull with: podman pull $IMAGE_NAME:latest"
 }
 
 # Help command
@@ -55,7 +168,9 @@ cmd_help() {
     echo "  build         - Build the container image"
     echo "  test          - Run tests"
     echo "  lint          - Run code quality checks"
-    echo "  ci            - Run full CI pipeline (clean, deps, lint, test, build)"
+    echo "  smoke         - Container smoke test"
+    echo "  publish       - Push image to GitHub Container Registry"
+    echo "  ci            - Run almost full CI pipeline (clean, deps, lint, test, build, smoke)"
     echo "  help          - Show this help message"
 }
 
@@ -75,11 +190,11 @@ main() {
         lint)
             cmd_lint
             ;;
-        serve)
-            cmd_serve
+        smoke)
+            cmd_smoke
             ;;
-        dev)
-            cmd_dev
+        publish)
+            cmd_publish
             ;;
         ci)
             cmd_ci
