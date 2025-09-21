@@ -3,7 +3,7 @@ Unit tests for the Hey Hey Flask webapp
 """
 
 import pytest
-from heyhey.app import create_app
+from app.app import create_app
 
 
 @pytest.fixture

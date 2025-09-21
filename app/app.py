@@ -2,6 +2,7 @@
 Hey Hey - A simple Flask webapp
 """
 
+import os
 from flask import Flask, jsonify
 
 
@@ -25,7 +26,9 @@ def create_app():
 def main():
     """Main entry point for the application."""
     app = create_app()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 8080))
+    host = os.environ.get('HOST', '0.0.0.0')
+    app.run(debug=True, port=port, host=host)
 
 
 if __name__ == '__main__':

@@ -11,15 +11,13 @@ dependencies = [
     "flask (>=3.1.2,<4.0.0)"
 ]
 
+[tool.poetry]
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project.scripts]
-heyhey = "heyhey.app:main"
-
-[dependency-groups]
-dev = [
-    "pytest (>=8.4.2,<9.0.0)"
-]
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.4.2,<9.0.0"
+flake8 = "^7.3.0"
