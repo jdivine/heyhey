@@ -3,6 +3,11 @@
 
 on: [push, pull_request]
 name: CI Pipeline
+
+permissions:
+  contents: read
+  packages: write
+
 jobs:
     ci:
         runs-on: ubuntu-latest
