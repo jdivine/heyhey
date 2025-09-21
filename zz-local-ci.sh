@@ -91,66 +91,13 @@ cmd_publish() {
     # Configure registries first
     configure_registries
     
-    # Get the GitHub username/repo from git remote
-    # REPO_URL=$(git remote get-url origin 2>/dev/null || echo "")
-    # if [[ "$REPO_URL" =~ github\.com[:/]([^/]+)/([^/]+) ]]; then
-    #     GITHUB_USER="${BASH_REMATCH[1]}"
-    #     REPO_NAME="${BASH_REMATCH[2]%.git}"
-    # else
-    #     echo "Error: Could not determine GitHub repository from git remote"
-    #     echo "Make sure you're in a git repository with a GitHub remote"
-    #     exit 1
-    # fi
-    
-    # IMAGE_NAME="ghcr.io/$GITHUB_USER/$REPO_NAME"
     IMAGE_NAME="ghcr.io/jdivine/heyhey"
     GITHUB_USER="jdivine"
     
-    # Get version tag (use git tag, branch, or 'latest')
-    # if git describe --tags --exact-match 2>/dev/null; then
-    #     VERSION=$(git describe --tags --exact-match)
-    # else
-    #     VERSION=$(git rev-parse --short HEAD)
-    # fi
     
-    echo "Repository: $GITHUB_USER/$REPO_NAME"
-    echo "Registry: ghcr.io"
-    echo "Version: $VERSION"
-    
-    # Build image with proper tags
-    # cmd_build
-    
-    # Tag image for registry
-    # echo "Tagging image..."
     podman tag heyhey:latest "$IMAGE_NAME:latest"
-    # podman tag heyhey:latest "$IMAGE_NAME:$VERSION"
-    
-    # Login to GitHub Container Registry
-    echo "Logging into GitHub Container Registry..."
-    echo "You may need to authenticate with GitHub CLI first: gh auth login"
-    
-    # Use gh CLI to get token and login to registry
-    # if ! command -v gh &> /dev/null; then
-    #     echo "Error: GitHub CLI (gh) is not installed"
-    #     echo "Please install: https://cli.github.com/"
-    #     exit 1
-    # fi
-    
-    # Check if authenticated
-    # if ! gh auth status &>/dev/null; then
-    #     echo "Error: Not authenticated with GitHub CLI"
-    #     echo "Please run: gh auth login"
-    #     exit 1
-    # fi
-    
-    # Login to container registry using gh token
-    REGISTRY="ghcr.io"
-    gh auth token | podman login $REGISTRY --username "$GITHUB_USER" --password-stdin
-    
-    # Push images
-    echo "Pushing images..."
+    gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin
     podman push "$IMAGE_NAME:latest"
-    # podman push "$IMAGE_NAME:$VERSION"
     
     echo "✓ Successfully published:"
     echo "  $IMAGE_NAME:latest"
