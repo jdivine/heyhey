@@ -92,21 +92,16 @@ cmd_publish() {
     configure_registries
     
     IMAGE_NAME="ghcr.io/jdivine/heyhey"
+    GITHUB_USER="jdivine"
     
-    # Handle authentication differently for GitHub Actions vs local development
+    # In GitHub Actions, authenticate gh CLI with the workflow token first
     if [ -n "$GITHUB_TOKEN" ]; then
-        # Running in GitHub Actions - use the provided token
-        GITHUB_USER="jdivine"
-        AUTH_COMMAND="echo \$GITHUB_TOKEN | podman login ghcr.io --username \$GITHUB_USER --password-stdin"
-    else
-        # Running locally - use gh CLI
-        GITHUB_USER=$(gh auth status -a | grep 'Logged in' | awk '{print $7}')
-        AUTH_COMMAND="gh auth token | podman login ghcr.io --username \$GITHUB_USER --password-stdin"
+        echo "$GITHUB_TOKEN" | gh auth login --with-token
     fi
     
     if ! {
         podman tag heyhey:latest "$IMAGE_NAME:latest" &&
-        eval "$AUTH_COMMAND" &&
+        gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin &&
         podman push "$IMAGE_NAME:latest"
     }; then
         echo "❌ Publish failed!"

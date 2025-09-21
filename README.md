@@ -42,7 +42,8 @@
 - Poetry install running into non-deterministic SSL errors locally on WSL
   - Hacky workaround added to the Dockerfile
   - I suspect something isn't quite right with my WSL network config but didn't want to spend more time figuring out exactly what, since it only appears to affect this specific scenario
-- Initially couldn't access the app running on port 8080 when running locally from the Dockerfile
+- Initially couldn't access the app running on port 8080 when running locally from the docker image.  I had to specify both container port and local port - I had forgotten that it didn't automatically use the exposed port number.
+- Had permissions errors publishing from the workflow to the registry.  I was trying to use the same `gh auth` that I used locally, but I asked Copilot and it reminded me that I needed to set the workflow (or job) permissions and use the GITHUB_TOKEN directly.
 
 ## Future enhancements for hypothetical production use
 - HTTPS
