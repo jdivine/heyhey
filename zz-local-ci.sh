@@ -51,6 +51,7 @@ cmd_ci() {
     cmd_lint
     cmd_test
     cmd_build
+    cmd_smoke
     echo "CI pipeline completed successfully"
 }
 
@@ -115,12 +116,12 @@ cmd_help() {
     echo ""
     echo "Available commands:"
     echo "  deps          - Install/update dependencies"
-    echo "  build         - Build the container image"
     echo "  test          - Run tests"
     echo "  lint          - Run code quality checks"
+    echo "  build         - Build the container image"
     echo "  smoke         - Container smoke test"
-    echo "  publish       - Push image to GitHub Container Registry"
     echo "  ci            - Run almost full CI pipeline (clean, deps, lint, test, build, smoke)"
+    echo "  publish       - Push image to GitHub Container Registry"
     echo "  help          - Show this help message"
 }
 
