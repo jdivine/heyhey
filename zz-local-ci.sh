@@ -94,26 +94,19 @@ cmd_publish() {
     IMAGE_NAME="ghcr.io/jdivine/heyhey"
     GITHUB_USER="jdivine"
     
-    # In GitHub Actions, authenticate gh CLI with the workflow token first
-    if [ -n "$GITHUB_TOKEN" ]; then
-        echo "$GITHUB_TOKEN" | gh auth login --with-token
+    # If not already authenticated, log in to ghcr.io 
+    PODMAN_USER=`podman login --get-login ghcr.io`
+    if [ -z "$PODMAN_USER" ]; then
+        gh auth token | podman login ghcr.io \
+        --username "$GITHUB_USER" --password-stdin \
+        || { echo "Authentication to ghcr.io failed"; exit 1; }
     fi
-    
+
     if ! {
         podman tag heyhey:latest "$IMAGE_NAME:latest" &&
-        gh auth token | podman login ghcr.io --username "$GITHUB_USER" --password-stdin &&
         podman push "$IMAGE_NAME:latest"
     }; then
-        echo "❌ Publish failed!"
-        echo ""
-        if [ -n "$GITHUB_TOKEN" ]; then
-            echo "Running in GitHub Actions - check workflow permissions."
-            echo "Ensure the workflow has 'packages: write' permission."
-        else
-            echo "If you're getting permission errors, try:"
-            echo "  gh auth login --scopes 'write:packages,read:packages'"
-        fi
-        echo ""
+        echo "Publish failed"
         exit 1
     fi
     
