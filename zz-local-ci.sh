@@ -5,6 +5,8 @@
 set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IMAGE_NAME="ghcr.io/jdivine/heyhey"
+GITHUB_USER="jdivine"
 
 # Configure podman registries
 configure_registries() {
@@ -33,6 +35,7 @@ cmd_deps() {
 cmd_build() {
     echo "Building image..."
     podman build --tag heyhey:latest .
+    podman tag heyhey:latest "$IMAGE_NAME:latest"
 }
 
 cmd_test() {
@@ -91,20 +94,10 @@ cmd_publish() {
     
     configure_registries
     
-    IMAGE_NAME="ghcr.io/jdivine/heyhey"
-    GITHUB_USER="jdivine"
-    
-    # If not already authenticated, log in to ghcr.io 
-    # PODMAN_USER=`podman login --get-login ghcr.io`
-    # if [ -z "$PODMAN_USER" ]; then
-    #     gh auth token | podman login ghcr.io \
-    #     --username "$GITHUB_USER" --password-stdin \
-    #     || { echo "Authentication to ghcr.io failed"; exit 1; }
-    # fi
-
     if ! {
-        podman tag heyhey:latest "$IMAGE_NAME:latest" &&
-        podman push "$IMAGE_NAME:latest"
+        gh auth token \
+        | podman login ghcr.io --username "$GITHUB_USER" --password-stdin \
+        && podman push "$IMAGE_NAME:latest"
     }; then
         echo "Publish failed"
         exit 1
