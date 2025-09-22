@@ -63,22 +63,23 @@ jobs:
             #     password: ${{ github.token }}
             #     registry: "ghcr.io/${{ github.repository_owner }}"
 
+            - name: Publish to GitHub Container Registry
+              # In the real world, I'd want to create unique tags based on branch or PR name and existing tags.
+              # Just using latest in this example since it's all we need to demonstrate CI and CD.
+              # I'd want to publish for PRs (with a PR-specific tag) and for merges to main (with a "production" tag).
+              env:
+                GITHUB_USER: jdivine
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                bash -x zz-local-ci.sh publish
+
             # - name: Publish to GitHub Container Registry
             #   env:
             #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            #   # In the real world, I'd want to create unique tags based on branch or PR name and existing tags.
-            #   # Just using latest in this example since it's all we need to demonstrate CI and CD.
-            #   # I'd want to publish for PRs (with a PR-specific tag) and for merges to main (with a "production" tag).
-            #   run: |
-            #     bash -x zz-local-ci.sh publish
-            - name: Publish to GitHub Container Registry
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              uses: redhat-actions/push-to-registry@v2
-              with:
-                tags: "ghcr.io/jdivine/heyhey:latest"
-                registry: ghcr.io
-                username: ${{ github.repository_owner }}
-                password: ${{ secrets.GITHUB_TOKEN }}
+            #   uses: redhat-actions/push-to-registry@v2
+            #   with:
+            #     tags: "ghcr.io/jdivine/heyhey:latest"
+            #     registry: ghcr.io
+            #     username: ${{ github.repository_owner }}
+            #     password: ${{ secrets.GITHUB_TOKEN }}
 

@@ -6,7 +6,8 @@ set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="ghcr.io/jdivine/heyhey"
-GITHUB_USER="jdivine"
+[[ -z "$GITHUB_USER" ]] && GITHUB_USER="jdivine"
+# Some of this is a bit yuck. I'd like to parameterize it better later.
 
 # Configure podman registries
 configure_registries() {
