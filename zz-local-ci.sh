@@ -95,12 +95,12 @@ cmd_publish() {
     GITHUB_USER="jdivine"
     
     # If not already authenticated, log in to ghcr.io 
-    PODMAN_USER=`podman login --get-login ghcr.io`
-    if [ -z "$PODMAN_USER" ]; then
-        gh auth token | podman login ghcr.io \
-        --username "$GITHUB_USER" --password-stdin \
-        || { echo "Authentication to ghcr.io failed"; exit 1; }
-    fi
+    # PODMAN_USER=`podman login --get-login ghcr.io`
+    # if [ -z "$PODMAN_USER" ]; then
+    #     gh auth token | podman login ghcr.io \
+    #     --username "$GITHUB_USER" --password-stdin \
+    #     || { echo "Authentication to ghcr.io failed"; exit 1; }
+    # fi
 
     if ! {
         podman tag heyhey:latest "$IMAGE_NAME:latest" &&
