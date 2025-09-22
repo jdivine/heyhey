@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.source https://github.com/jdivine/heyhey
+
 ENV PYTHONFAULTHANDLER=1 \
   PYTHONUNBUFFERED=1 \
   POETRY_NO_INTERACTION=1 
