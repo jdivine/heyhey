@@ -18,9 +18,6 @@ The application image is hosted on GitHub Container Registry, so you need to cre
 ```bash
 # If you have GitHub CLI authenticated:
 ./zz-local-ci.sh deploy
-
-# Or with a GitHub token:
-GITHUB_TOKEN=your_token_here ./zz-local-ci.sh deploy
 ```
 
 #### Option 2: Manual secret creation
@@ -69,7 +66,6 @@ The following table lists the configurable parameters and their default values:
 | `service.type` | Kubernetes service type | `ClusterIP` |
 | `service.port` | Service port | `80` |
 | `service.targetPort` | Container port | `8080` |
-| `ingress.enabled` | Enable ingress | `false` |
 | `resources.limits.cpu` | CPU limit | `200m` |
 | `resources.limits.memory` | Memory limit | `256Mi` |
 | `resources.requests.cpu` | CPU request | `100m` |
@@ -78,24 +74,6 @@ The following table lists the configurable parameters and their default values:
 | `healthCheck.path` | Health check endpoint | `/health` |
 
 ## Examples
-
-### Enable Ingress
-```yaml
-# values-ingress.yaml
-ingress:
-  enabled: true
-  className: "nginx"
-  hosts:
-    - host: heyhey.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-```
-
-Deploy with:
-```bash
-helm install heyhey ./helm/heyhey -f values-ingress.yaml
-```
 
 ### Production Configuration
 ```yaml
@@ -110,11 +88,6 @@ resources:
   requests:
     cpu: 200m
     memory: 256Mi
-autoscaling:
-  enabled: true
-  minReplicas: 3
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
 ```
 
 ## Uninstalling

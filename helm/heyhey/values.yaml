@@ -9,24 +9,10 @@ image:
 imagePullSecrets:
   - name: ghcr-secret
 
-# nameOverride: ""
-# fullnameOverride: ""
-
 service:
   type: ClusterIP
   port: 80
   targetPort: 8080
-
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: heyhey.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
 
 resources:
   limits:
@@ -35,18 +21,6 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
 
 # Health check configuration
 healthCheck:
