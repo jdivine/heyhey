@@ -108,6 +108,36 @@ cmd_publish() {
     echo "Pull with: podman pull $IMAGE_NAME:latest"
 }
 
+# Deploy command - creates image pull secret and installs/upgrades helm chart
+cmd_deploy() {
+    echo "Deploying to Kubernetes..."
+    
+    # Making a lot of assumptions here that we are configured to hit a working cluster
+
+    kubectl get namespace heyhey1 || kubectl create namespace heyhey1
+
+    echo "Creating/updating image pull secret..."
+    GH_TOKEN=$(gh auth token)
+    kubectl create secret docker-registry ghcr-secret \
+        --namespace=heyhey1 \
+        --docker-server=ghcr.io \
+        --docker-username=jdivine \
+        --docker-password="$GH_TOKEN"
+        # --dry-run=client -o yaml | kubectl apply -f -
+    
+    echo "Deploying helm chart..."
+    helm upgrade --install heyhey ./helm/heyhey \
+        --namespace=heyhey1 \
+        --create-namespace \
+        --wait \
+        --timeout=300s
+    
+    echo "Deployment completed!"
+    echo "Test locally with:"
+    echo "  kubectl port-forward -n heyhey1 service/heyhey 8000:80"
+    echo "  curl http://localhost:8000/health"
+}
+
 # Help command
 cmd_help() {
     echo "Usage: $0 [command]"
@@ -120,6 +150,7 @@ cmd_help() {
     echo "  smoke         - Container smoke test"
     echo "  ci            - Run almost full CI pipeline (clean, deps, lint, test, build, smoke)"
     echo "  publish       - Push image to GitHub Container Registry"
+    echo "  deploy        - Deploy to Kubernetes (creates secrets and installs helm chart)"
     echo "  help          - Show this help message"
 }
 
@@ -144,6 +175,9 @@ main() {
             ;;
         publish)
             cmd_publish
+            ;;
+        deploy)
+            cmd_deploy
             ;;
         ci)
             cmd_ci
