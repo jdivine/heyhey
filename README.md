@@ -32,11 +32,14 @@
 - Assumes a pre-existing install of minikube, kubectl, helm, etc
 - Start a fresh minikube cluster with `minikube delete ; minikube start`
 - Install ArgoCD with the instructions here: https://argo-cd.readthedocs.io/en/stable/getting_started/
+- Verify you can login by running `kubectl port-forward svc/argocd-server -n argocd 8080:443` and hitting localhost:8080 in the browser
 - Deploy the image pull secret by running `./zz-local-ci.sh deploy-secret`
 - Deploy the "CI" heyhey app with `argocd app create -f argo/applications/heyhey.yaml`
-- Push a change to main (e.g. change default replica count) and see that the change syncs
+- Run `kubectl port-forward -n heyhey1 service/heyhey 8000:80` and verify it's up by hitting localhost:8000
+- Push a change to main (e.g. change default replica count) and see that the change syncs in Argo
 - Deploy the "production" heyhey app with `argocd app create -f argo/applications/heyhey-prod.yaml`
-- Create a release tag (release-1.x for instance) and see that it triggers a sync
+- Create a release tag (release-1.1 for instance)
+- Set the new release `argocd app set heyhey-prod --revision release-0.1` and trigger a sync
 
 ## Homework Summary
 - Initial setup
@@ -76,12 +79,12 @@
 
 
 ## Future enhancements for hypothetical production use
-- an ingress with TLS enabled
 - Auth layer somewhere
+- An ingress with TLS enabled
 - Network security policies
 - RBAC roles
-- Pipeline checks for dependency vulnerabilities / code quality / code security
 - Add a horizontal pod autoscaler
+- Pipeline checks for dependency vulnerabilities / code quality / code security
 - Non-root Dockerfile
 - More efficient Docker build
 - More verification in helper script to make more foolproof
@@ -90,4 +93,5 @@
 - Version tags for git and docker
 - Production-grade WSGI server like Gunicorn
 - Probably lots of other things
-- Webhooks for Argo
+- Webhooks for Argo instead of polling
+- ArgoCd Image Updater to watch image publication

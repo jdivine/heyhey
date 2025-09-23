@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/jdivine/heyhey.git
     path: helm/heyhey
-    targetRevision: "release-*"
+    targetRevision: main  # Track main branch for chart updates
     helm:
       valueFiles:
         - values.yaml
