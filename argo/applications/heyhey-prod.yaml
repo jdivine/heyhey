@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: heyhey-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jdivine/heyhey.git
+    path: helm/heyhey
+    targetRevision: "release-*"
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: replicaCount
+          value: "3"
+        - name: image.tag
+          value: "latest"
+        - name: resources.limits.memory
+          value: "512Mi"
+        - name: resources.limits.cpu
+          value: "500m"
+  destination:
+    namespace: heyhey-prod
+    name: in-cluster
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 2
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s

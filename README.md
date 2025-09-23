@@ -5,31 +5,40 @@
   - [How to Use](#how-to-use)
     - [Local CI pipeline and app](#local-ci-pipeline-and-app)
     - [Github Actions](#github-actions)
-    - [Argo / k8s deployment](#argo--k8s-deployment)
-  - [Homework steps](#homework-steps)
+    - [Argo / App / Helm deployment](#argo--app--helm-deployment)
+  - [Homework Summary](#homework-summary)
   - [Tools and resources used](#tools-and-resources-used)
   - [Problems Encountered and Solved](#problems-encountered-and-solved)
   - [Future enhancements for hypothetical production use](#future-enhancements-for-hypothetical-production-use)
 
 ## What Is This?
-- Sample Python web app & associated DOckerfile
+- Sample Python web app & associated Dockerfile
 - CI pipeline using Github Actions (and a shell script to run all steps locally)
-- Helm chart and supporting files for k8s deployment
-- CD pipeline using Argo
+- Helm chart k8s deployment
+- Manifests for CD using ArgoCD
 
 ## How to Use
 ### Local CI pipeline and app
-- TODO
+- The `zz-local-ci.sh` script contains steps that can be run locally for "CI" purposes
+- `./zz-local-ci.sh help` will show the various steps that can be run.
+- `./zz-local-ci.sh ci` will run the CI steps up to `smoke` but stop before publishing an image.
   
 ### Github Actions
-- TODO
+- The `ci-pipeline.yml` workflow runs the same steps on pushes to main or on pull requests.
+- It largely runs the same steps that are available in the local helper script
 
-### Argo / k8s deployment
+### Argo / App / Helm deployment
+- Argo manifest files are under /argo/applications
 - Assumes a pre-existing install of minikube, kubectl, helm, etc
-- Start a fresh minikube cluster with `minikube delete ; minikube delete`
+- Start a fresh minikube cluster with `minikube delete ; minikube start`
+- Install ArgoCD with the instructions here: https://argo-cd.readthedocs.io/en/stable/getting_started/
+- Deploy the image pull secret by running `./zz-local-ci.sh deploy-secret`
+- Deploy the "CI" heyhey app with `argocd app create -f argo/applications/heyhey.yaml`
+- Push a change to main (e.g. change default replica count) and see that the change syncs
+- Deploy the "production" heyhey app with `argocd app create -f argo/applications/heyhey-prod.yaml`
+- Create a release tag (release-1.x for instance) and see that it triggers a sync
 
-
-## Homework steps
+## Homework Summary
 - Initial setup
   - I began by creating a Github repo.
   - Github then asked me if I wanted to use Copilot to initialize the repo, so I thought "what the heck." I had it initialize a basic Python webapp using Poetry, with a "/" and a "/health" endpoints and unit tests for each endpoint.
@@ -41,14 +50,12 @@
   - Just decided to call the shell script steps I'd already built.
 - Set up a new minikube cluster
 - Helm chart:
-  - I told copilot to spin up a basic helm chart for deploying this image. It generated a pretty standard setup.
-  - TODO
+  - I told copilot to spin up a basic helm chart for deploying this image. It generated a pretty standard setup with some extra cruft that I cleaned up.
 - ArgoCD:
   - Installed with the instructions here: https://argo-cd.readthedocs.io/en/stable/getting_started/
-  - Local installation so I installed an ingress for it to access the API server
-  - 
-- TODO:
-  - Shell script for CD actions
+  - Local installation so I didn't bother with an ingress - using local port forwarding
+  - Manually created initial application using the getting started guide
+  - Exported the app config - replicated and created a "production" example
 
 ## Tools and resources used
 - I did this work on WSL / Ubuntu 24.04 but it should work pretty much the same on Mac
@@ -59,7 +66,6 @@
   - I'm happy to discuss how I use genAI in my work. In general I think it's a powerful tool if you already kind of know what needs to be done and take its suggestions with a grain of salt.
 - Minikube
   - I chose to go with this since I already had it installed and have used it in the past.
-- 
 
 ## Problems Encountered and Solved
 - Poetry install was running into non-deterministic SSL errors locally on WSL. Seems like it happens when downloading large batches of packages - Python, Node, dpkg .. 
@@ -74,8 +80,7 @@
 - Auth layer somewhere
 - Network security policies
 - RBAC roles
-- Pipeline checks for dependency vulnerabilities (dependabot or similar)
-- Pipeline checks for code quality / code security
+- Pipeline checks for dependency vulnerabilities / code quality / code security
 - Add a horizontal pod autoscaler
 - Non-root Dockerfile
 - More efficient Docker build
@@ -85,3 +90,4 @@
 - Version tags for git and docker
 - Production-grade WSGI server like Gunicorn
 - Probably lots of other things
+- Webhooks for Argo

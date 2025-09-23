@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Local CI/development helper script
+# CI / Local development helper script
 
 set -e  # Exit on any error
 
+# Some of this is a bit yuck. I'd like to parameterize it better later.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_NAME="ghcr.io/jdivine/heyhey"
 [[ -z "$GITHUB_USER" ]] && GITHUB_USER="jdivine"
-# Some of this is a bit yuck. I'd like to parameterize it better later.
 
 # Configure podman registries
 configure_registries() {
@@ -108,24 +108,30 @@ cmd_publish() {
     echo "Pull with: podman pull $IMAGE_NAME:latest"
 }
 
-# Deploy command - creates image pull secret and installs/upgrades helm chart
-cmd_deploy() {
-    echo "Deploying to Kubernetes..."
+cmd_deploy_secret() {
+    echo "Creating/updating image pull secret..."
     
     # Making a lot of assumptions here that we are configured to hit a working cluster
 
     kubectl get namespace heyhey1 || kubectl create namespace heyhey1
 
-    echo "Creating/updating image pull secret..."
     GH_TOKEN=$(gh auth token)
     kubectl create secret docker-registry ghcr-secret \
         --namespace=heyhey1 \
         --docker-server=ghcr.io \
         --docker-username=jdivine \
         --docker-password="$GH_TOKEN"
-        # --dry-run=client -o yaml | kubectl apply -f -
+}
+
+cmd_deploy() {
+    deploy_secret
+
+    echo "Deploying Helm chart..."
     
-    echo "Deploying helm chart..."
+    # Making a lot of assumptions here that we are configured to hit a working cluster
+
+    kubectl get namespace heyhey1 || kubectl create namespace heyhey1
+    
     helm upgrade --install heyhey ./helm/heyhey \
         --namespace=heyhey1 \
         --create-namespace \
@@ -148,9 +154,10 @@ cmd_help() {
     echo "  test          - Run tests"
     echo "  build         - Build the container image"
     echo "  smoke         - Container smoke test"
-    echo "  ci            - Run almost full CI pipeline (clean, deps, lint, test, build, smoke)"
+    echo "  ci            - Run full \"local CI\" pipeline (deps, lint, test, build, smoke)"
     echo "  publish       - Push image to GitHub Container Registry"
-    echo "  deploy        - Deploy to Kubernetes (creates secrets and installs helm chart)"
+    echo "  deploy-secret - Deploy the secret"
+    echo "  deploy        - Deploy to Kubernetes (creates secret and installs helm chart)"
     echo "  help          - Show this help message"
 }
 
